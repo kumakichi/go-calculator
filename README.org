@@ -1,0 +1,11 @@
+* About
+
+Poor effecient calculator demo, using *regexp* and *cmd/yacc*, use *regexp* to simulate *lex*.
+
+Example:
+#+BEGIN_SRC sh
+  > 3*2.2**10
+  7967.976837
+  > Quit
+  Quit now ~
+#+END_SRC

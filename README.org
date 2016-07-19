@@ -1,6 +1,8 @@
 * About
 
-Poor effecient calculator demo, using *regexp* and *cmd/yacc*, use *regexp* to simulate *lex*.
+Poor efficiency calculator demo, using *regexp* and *cmd/yacc*, use *regexp* to simulate *lex*.
+
+The goal of this repository is *making syntax simple*, without considering efficiency.
 
 Example:
 #+BEGIN_SRC sh

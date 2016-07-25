@@ -1,0 +1,46 @@
+* Rule
+
+#+BEGIN_SRC sh
+  calclist:
+      | calclist stmt EOL {
+          fmt.Printf(" = %4.4g\n", eval($2));
+      }
+      | calclist DEFUN SYMBOL '(' slist ')' block EOL {
+          dodef($3, $5, $7);
+          fmt.Printf("definded %s\n> ", $3.name);
+      }
+      | calclist error EOL {
+          fmt.Printf("> ");
+      }
+
+  stmt: IF expr block {$$ = newflow(IF, $2, $3, nil);}
+      | IF expr block ELSE block {$$ = newflow(IF, $2, $3, $5);}
+      | WHILE expr block {$$ = newflow(WHILE, $2, $3, nil);}
+      | expr
+
+  block: '{' stmtlist '}' { $$ = $2; };
+
+  stmtlist: stmt ';' stmtlist {$$ = newast(LISTTYPE, $1, $3); }
+      | stmt ';'
+      | stmt
+
+  expr: expr CMPFN expr {$$ = newcmp($2, $1, $3);}
+      | expr '+' expr {$$ = newast('+', $1, $3);}
+      | expr '-' expr {$$ = newast('-', $1, $3);}
+      | expr '*' expr {$$ = newast('*', $1, $3);}
+      | expr '/' expr {$$ = newast('/', $1, $3);}
+      | expr EXP expr {$$ = newast(EXP, $1, $3);}
+      | '(' expr ')' {$$ = $2;}
+      | '-' expr %prec UMINUS {$$ = newast(UMINUS, $2, nil);}
+      | NUMBER {$$ = num2ast($1);}
+      | SYMBOL {$$ = newref($1);}
+      | SYMBOL '=' expr {$$ = newasgn($1, $3);}
+      | BUILTINFN '(' explist ')' {$$ = newfunc($1, $3);}
+      | SYMBOL '(' explist ')' {$$ = newcall($1, $3);}
+
+  explist: expr
+      | expr ',' explist {$$ = newast(LISTTYPE, $1, $3);}
+
+  slist: SYMBOL {$$ = newsymlist($1, nil);}
+      | SYMBOL ',' slist {$$ = newsymlist($1, $3);}
+#+END_SRC

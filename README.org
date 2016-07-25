@@ -17,3 +17,16 @@ The goal of this repository is *making syntax simple*, without considering effic
 [[./v1][v1]] shows a normal way, just write rules in yacc
 
 [[./ast][ast]] uses AST node and a *eval* function
+
+[[./pro][pro]] shows a complete, tiny language
+
+#+BEGIN_SRC sh
+  > defun demo(a,b) {if(a>b){a/b;}else{a**b}}
+  definded demo
+  > > demo(3,4)
+   =   81
+  > demo(4,3)
+   = 1.333
+  > quit
+  Quit now ~
+#+END_SRC

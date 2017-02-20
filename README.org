@@ -3,6 +3,12 @@
 Poor efficiency calculator demo, using *regexp* and *cmd/yacc*, use *regexp* to simulate *lex*.
 
 The goal of this repository is *making syntax simple*, without considering efficiency.
+* About goyacc
+
+According to https://golang.org/doc/go1.8:
+
+The yacc tool (previously available by running "go tool yacc") has been removed. As of Go 1.7 it was no longer used by the Go compiler. It has moved to the "tools" repository and is now available at [[https://godoc.org/golang.org/x/tools/cmd/goyacc][golang.org/x/tools/cmd/goyacc]]
+
 * Example
 #+BEGIN_SRC sh
   > 3*2.2**10

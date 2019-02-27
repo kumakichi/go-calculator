@@ -160,8 +160,8 @@ func eval(a *astNode) float64 {
 		ret = callbuiltin((*fncall)(unsafe.Pointer(a)))
 	case USERCUSFNTYPE:
 		ret = calluser((*ufncall)(unsafe.Pointer(a)))
-    case c_gt,c_lt,c_le,c_ge,c_ne,c_eq:
-        ret = calccmp(a)
+	case c_gt, c_lt, c_le, c_ge, c_ne, c_eq:
+		ret = calccmp(a)
 	}
 
 	return ret
@@ -342,28 +342,28 @@ func calluser(f *ufncall) float64 {
 }
 
 func calccmp(a *astNode) float64 {
-b :=false
-l := eval(a.l)
-r := eval(a.r)
+	b := false
+	l := eval(a.l)
+	r := eval(a.r)
 
-    switch a.typ {
-        case c_gt:
-        b = (l>r)
-        case c_lt:
-            b = (l<r)
-        case c_le:
-                b = (l<=r)
-        case c_ge:
-                    b = (l>=r)
-        case c_ne:
-                        b = (l!=r)
-        case c_eq:
-                            b = (l==r)
-    }
+	switch a.typ {
+	case c_gt:
+		b = (l > r)
+	case c_lt:
+		b = (l < r)
+	case c_le:
+		b = (l <= r)
+	case c_ge:
+		b = (l >= r)
+	case c_ne:
+		b = (l != r)
+	case c_eq:
+		b = (l == r)
+	}
 
-    if b {
-        return 1
-    }
+	if b {
+		return 1
+	}
 
-    return 0
+	return 0
 }

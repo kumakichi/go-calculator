@@ -8,7 +8,6 @@ import (
 	"math"
 	"io"
 	"log"
-	"regexp"
 	"strconv"
 	"os"
 )
@@ -43,8 +42,6 @@ expr: expr '+' expr { $$ = $1 + $3;}
 
 %%
 
-var rulesReg map[*regexp.Regexp]int
-
 const eof = 0
 
 // step 0, define struct : <prefix>Lex
@@ -61,58 +58,46 @@ func (x *yyLex) Error(s string) {
 
 // step 2, <prefix>Lex method: Lex(*<prefix>SymType) int
 func (x *yyLex) Lex(yylval *yySymType) int {
-	var mLen int
-	var leftStr string
-
-	leftStr = string(x.line[x.pos:])
-
-	for k, v := range rulesReg {
-		mResult := k.FindStringSubmatchIndex(leftStr)
-		mLen = len(mResult)
-		if mLen < 2 || mResult[0] != 0 { // [start end ...]
-			continue
+	val := int(x.line[x.pos])
+	switch x.line[x.pos] {
+	case '+', '-', '/', '(', ')':
+		x.pos += 1
+		return val
+	case '*':
+		if x.line[x.pos+1] == '*' {
+			x.pos += 2
+			return EXP
+		} else {
+			x.pos += 1
+			return val
 		}
-
-		okstr := string(x.line[x.pos : x.pos+mResult[1]])
-		x.pos += mResult[1]
-
-		switch v {
-		case WHITESPACE: /* ignore whitespace */
-		case '+', '-', '*', '/', '(', ')', EXP:
-			return v
-		case NUM:
-			yylval.num, _ = strconv.ParseFloat(okstr, 64)
-			return NUM
-		case QUIT:
+	case '^':
+		x.pos += 1
+		return EXP
+	case ' ', '\t', '\r', '\n': // ignore WHITESPACE
+		x.pos += 1
+	case 'q', 'Q':
+		if readQuit(x) {
 			fmt.Println("Quit now ~")
 			os.Exit(0)
-		default:
-			fmt.Println("You should not see this info")
-			break
+		}
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		numStr, ok := readNum(x)
+		x.pos += len(numStr)
+		if ok {
+			yylval.num, _ = strconv.ParseFloat(string(numStr), 64)
+			return NUM
 		}
 	}
 
 	if x.pos < x.length {
-		fmt.Printf("Mystery character %c\n", x.line[x.pos])
+		fmt.Printf("Mystery character %d/%d, %c,%x\n", x.pos, x.length, x.line[x.pos], x.line[x.pos])
 	}
 
 	return eof
 }
 
 func main() {
-	rulesReg = map[*regexp.Regexp]int{
-		regexp.MustCompile(`\+`):                                   '+',
-		regexp.MustCompile(`-`):                                    '-',
-		regexp.MustCompile(`\*\*|\^`):                              EXP,
-		regexp.MustCompile(`\*`):                                   '*',
-		regexp.MustCompile(`/`):                                    '/',
-		regexp.MustCompile(`\(`):                                   '(',
-		regexp.MustCompile(`\)`):                                   ')',
-		regexp.MustCompile(`\s`):                                   WHITESPACE,
-		regexp.MustCompile(`([1-9])([\d]*\.?[\d]*)?|(0\.)([\d]+)`): NUM,
-		regexp.MustCompile(`(?i)quit|exit`):                        QUIT,
-	}
-
 	in := bufio.NewReader(os.Stdin)
 	for {
 		if _, err := os.Stdout.WriteString("> "); err != nil {
@@ -128,4 +113,52 @@ func main() {
 
 		yyParse(&yyLex{line: line, length: len(line), pos: 0})
 	}
+}
+
+func readQuit(x *yyLex) (ok bool) {
+	if x.pos+4 > x.length {
+		return
+	}
+
+	if x.line[x.pos] == 'q' &&
+		x.line[x.pos+1] == 'u' &&
+		x.line[x.pos+2] == 'i' &&
+		x.line[x.pos+3] == 't' {
+		ok = true
+		return
+	}
+
+	if x.line[x.pos] == 'Q' &&
+		x.line[x.pos+1] == 'U' &&
+		x.line[x.pos+2] == 'I' &&
+		x.line[x.pos+3] == 'T' {
+		ok = true
+		return
+	}
+
+	return
+}
+
+func readNum(x *yyLex) (numStr []byte, ok bool) {
+	usedDot := false
+	if x.line[x.pos] == '0' && x.line[x.pos+1] != '.' {
+		return
+	}
+
+	for i := x.pos; i < x.length; i++ {
+		if x.line[i] <= '9' && x.line[i] >= '0' {
+			numStr = append(numStr, x.line[i])
+		} else if x.line[i] == '.' {
+			if usedDot == false {
+				usedDot = true
+				numStr = append(numStr, x.line[i])
+			} else {
+				return
+			}
+		} else {
+			ok = true
+			return
+		}
+	}
+	return
 }
